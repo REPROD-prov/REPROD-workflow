@@ -1,0 +1,48 @@
+Windows Sandbox
+
+ Setup a Microsoft Windows 10 Pro (10.0.19045 Build 19045) virtual machine in VirtualBox 7.0 with only Local disk (C:)
+ Install VirtualBox guestAdditions with \slash auto\_logon switch
+ Create a VirtualBox vdi, attach it to the vm and initialize it as New Volume (E:) through disk management. This will act as personal files storage and PML logs storage within the vm.
+
+ Install Python 3.11.0
+ Install pip 22.3
+ Install MalwareBazaar v0.1.2 through "pip install MalwareBazaar"
+ Download and unzip Process Monitor v3.92 folder in the Windows downloads folder and rename it as "ProcessMonitor"
+ Download and put the spade.reporter.ProcMon.pmc file in the ProcessMonitor folder
+ Download and unzip densityscout\_build\_45\_windows folder in New Volume (E:)
+ Download and unzip NapierOne Dataset and distribute the dataset files across the virtual machine.
+ To turn off security features, go to Local Group Policy Editor -> Computer Configuration -> Administrative Templates -> Windows Components
+ Now configure the following policies
+ "Turn off Microsoft Defender Antivirus" -> enabled
+ "Turn off routine remediation" -> enabled
+ Go to "Scan" folder and configure the following policies
+ "Turn archive files" -> disabled
+ "Turn on heuristics" -> disabled
+ "Scan packed executables" -> disabled
+ "Turn on heuristics" -> disabled
+ "Turn on heuristics" -> disabled
+ Go back and now go to "Real-time Protection" folder and configure the following policies
+ "Turn off real-time protection" -> enabled
+ "Turn on behavior monitoring" -> disabled
+ "Scan all downloaded files and attachments" -> disabled
+ "Monitor file and program activity on your computer" -> disabled
+ "Turn on raw volume write notifications" -> disabled
+ "Turn on process scanning whenever real-time protection is enabled" -> disabled
+ "Configure local setting override for turn on behavior monitoring" -> disabled 
+ "Configure local setting override for scanning all downloaded files and attachments" -> disabled
+ "Configure local setting override for monitoring file and program activity on your computer" -> disabled
+ "Configure local setting override to turn on real-time protection" -> disabled
+ "Configure local setting override for monitoring for incoming and outgoing file activity" -> disabled
+  Turn off the vm, go to virtual media manager and make the vdi containing the Local Disk (C:) immutable 
+  Take a snapshot of the virtual machine as "Snapshot1"
+ Create another VirtualBox vdi named vm_logsDump.vdi in the repro folder and not in the default general vdi folder, attach it to the vm, and initialize it as New Volume (F:) through disk management. Then close the vm and restore it back to "Snapshot1". This vdi will act as a secondary drive where the PML logs will be transferred and then extracted into the host.
+
+
+SPADE Processing
+
+ Setup a Ubuntu 18.04.6 LTS virtual machine in VirtualBox 7.0
+ Install and setup SPADE in the home directory
+ Go to startup applications preferences -> add "/home/spades/SPADE/bin/spade start" as the entry
+ Copy the code from getFileOperations.py and then delete the file. Then create a file on desktop with the same name "getFileOperations.py", paste the code into that file and move that file into the shared folder.
+ Turn off the virtual machine
+ Take a snapshot of the virtual machine as "Snapshot1"
