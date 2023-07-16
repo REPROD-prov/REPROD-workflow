@@ -6,7 +6,7 @@ Published in the CSET 2023: [https://doi.org/10.1145/3607505.3607510](https://do
 Broadly, the code can be used to download batches of malware samples from 
 [MalwareBazaar](https://bazaar.abuse.ch/), run them in a windows virtual machine and extract procmon logs
 provided as  input to [SPADE](https://github.com/ashish-gehani/SPADE). The code depends on two virtual machine
-images, the detailed instructions to create those images can be found in `virtual_machine_setup.txt`.
+images (a Windows sandbox and one for processing with SPADE), the detailed instructions to create those images can be found in `virtual_machine_setup.txt`.
 
 1. Setup the virtual environment inside the reprod directory with:
    1. `python -m venv venv`
