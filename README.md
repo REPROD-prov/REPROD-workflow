@@ -61,11 +61,6 @@ calculate the file operations done by the ransomware.
 This script extracts the maximum density changed from densities, number of new files, and file operations
 of a ransomware and add that data to the `summary.csv` file. It takes as argument the name of the folder for which you want to make the csv.
 
-# SHA256 Collection
-A `full_sha256.txt` file can be downloaded from [Malwarebazaar](https://bazaar.abuse.ch/export/). 
-HashesSort.py is the script which will query each SHA256 from malwarebazaar and get metadata in response.
-SHA256 will be filtered according to the ransomware tag and sorted according to the binary extension.
-
 # clonerun.py
 This will clone a source run into a new directory, changing `run_dir` in the config appropriately and can
 filter the summary file.
