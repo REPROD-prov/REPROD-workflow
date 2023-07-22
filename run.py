@@ -33,7 +33,7 @@ def vboxManage(programPath, programArg, cmdType):
 
         # after 3 tries of executing the command, execption will be raised
         if count == 3:
-            raise Exception("Unable to execute the command")
+            raise Exception("Guest control failed")
 
         # reexecute the command because the vm is not ready
         elif output == 1:
@@ -48,7 +48,7 @@ def vboxManage(programPath, programArg, cmdType):
 
         # for any other type of error, raise exception
         elif output != 0:
-            raise Exception("Unable to execute the command")
+            raise Exception("Error found in guest control command")
         else:
             return
 
@@ -148,8 +148,9 @@ def runSpade():
     # makes the shared folder
     os.system(
         f'''VBoxManage snapshot {config.spade_vm_name} restore {config.spade_vm_snapshot}''')
+    main_folder = config.reprod_dir.split("\\")[-1]
     os.system(
-        f'''VBoxManage sharedfolder add "{config.spade_vm_name}" --name "{config.main_folder}" --hostpath "{config.shared_folder_path}" --automount''')
+        f'''VBoxManage sharedfolder add "{config.spade_vm_name}" --name "{main_folder}" --hostpath "{config.reprod_dir}" --automount''')
 
     # starts the vm and sets up username and password
     print('\n')
@@ -200,13 +201,13 @@ count = 0
 while (count != config.runs):
     pmlCorrupt = 'null'
     try:
-        # starts the vm and sets up config.username and config.password
-        startVm()
-
         # reads hash from the file and print it
         print("extracting hash from txt file \n")
         hash_value = extract_hash(config.mb_SHA256_filename)
         print("Hash: ", hash_value, '\n')
+
+        # starts the vm and sets up config.username and config.password
+        startVm()
 
         # calculating density prior
         print("calculating before density \n")
@@ -316,7 +317,7 @@ while (count != config.runs):
             os.system(f'''del {config.pml_path}\\*.pml''')
             os.system(f'''del {config.xml_path}\\*.XML''')
             print('procmon log corrupted, cannot convert \n')
-            raise Exception("Unable to execute the command")
+            raise Exception("Unable to process pml log")
 
         elif pmlCorrupt == 'null':
             pmlCorrupt = 'no'
@@ -326,7 +327,8 @@ while (count != config.runs):
         print('starting spadeVm to collect file operations \n')
         runSpade()
         current_folder = config.run_dir.split("\\")[-1]
-        os.system(f'''VboxManage guestcontrol "{config.spade_vm_name}" run --exe {config.get_file_operations_path} --username "{config.spade_vm_username}" --password "{config.spade_vm_password}" -- {config.get_file_operations_path} {config.main_folder} {current_folder}''')
+        main_folder = config.reprod_dir.split("\\")[-1]
+        os.system(f'''VboxManage guestcontrol "{config.spade_vm_name}" run --exe {config.get_file_operations_path} --username "{config.spade_vm_username}" --password "{config.spade_vm_password}" -- {config.get_file_operations_path} {main_folder} {current_folder}''')
         closeSapde()
         print('\n file operations extracted \n')
 
@@ -370,5 +372,5 @@ while (count != config.runs):
         os.system('Taskkill /IM Procmon64.exe /F')
         closeSapde()
         retryHash(config.ransomware_extension, hash_value)
-        deleteHash(config.hash_filename)
+        deleteHash(config.mb_SHA256_filename)
         continue

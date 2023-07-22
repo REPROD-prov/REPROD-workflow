@@ -4,7 +4,6 @@ import os
 import pandas as pd
 import argparse
 import json
-import copy
 
 from utils import load_format_config
 from utils import dotdict
