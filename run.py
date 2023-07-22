@@ -13,28 +13,27 @@ from utils import dotdict
 parser = argparse.ArgumentParser()
 parser.add_argument('config_file', help="name of the config file")
 args = parser.parse_args()
-config=load_format_config(args.config_file)
+config = load_format_config(args.config_file)
 
 
 # function to run a command in vm
 def vboxManage(programPath, programArg, cmdType):
     count = 0
-    while(1):
-        output = os.system(f'''VBoxManage guestcontrol "{config.sandbox_vm_name}" {cmdType} --exe {programPath} 
-        --username "{config.username}" --password {config.sandbox_password} -- {programPath} {programArg} ''')
+    while (1):
+        output = os.system(f'''VBoxManage guestcontrol "{config.sandbox_vm_name}" {cmdType} --exe {programPath} --username "{config.username}" --password {config.sandbox_vm_password} -- {programPath} {programArg} ''')
 
-        if programArg == f'''/c "{config.densityscout_path} -d -r -o {config.density_save_path}\\densityAfter.txt {config.folder_for_density}" ''':
-            return 
-        
+        if programArg == f'''/c "{config.densityscout_path} -d -r -o {config.density_save_path}\\densityAfter.txt {config.folder_for_density_path}" ''':
+            return
+
         if programArg == f'''/c move {config.density_save_path}\\densityAfter.txt {config.logs_dump_vdi_vm_path}\\{hash_value}_after.txt''':
             return
-        
+
         if programArg == f'''/c move {config.density_save_path}\\densityBefore.txt {config.logs_dump_vdi_vm_path}\\{hash_value}_before.txt''':
             return
-        
+
         # after 3 tries of executing the command, execption will be raised
         if count == 3:
-            raise Exception("Unable to execute the command")
+            raise Exception("Guest control failed")
 
         # reexecute the command because the vm is not ready
         elif output == 1:
@@ -48,12 +47,14 @@ def vboxManage(programPath, programArg, cmdType):
             continue
 
         # for any other type of error, raise exception
-        elif output !=0:
-           raise Exception("Unable to execute the command")
+        elif output != 0:
+            raise Exception("Error found in guest control command")
         else:
             return
 
-#function to read SHA256 hash from hashes file
+# function to read SHA256 hash from hashes file
+
+
 def extract_hash(hash_filename):
 
     # check if there is any hash left in the file, otherwise close
@@ -71,7 +72,9 @@ def extract_hash(hash_filename):
     except:
         print("Error: Unable to read the file")
 
-#function to delete SHA56 hash from hashes file
+# function to delete SHA56 hash from hashes file
+
+
 def deleteHash(hash_filename):
 
     # check if there is any hash left in the file, otherwise close
@@ -99,7 +102,9 @@ def deleteHash(hash_filename):
     except:
         print("Error:Unable to delete the hash")
 
-#function to save the SHA56 hash to the hash_done file
+# function to save the SHA56 hash to the hash_done file
+
+
 def saveHash(ransomware_extension, hash_value):
 
     # save the hash to a new file
@@ -109,7 +114,9 @@ def saveHash(ransomware_extension, hash_value):
     except:
         print("Error:Unable to save the hash")
 
-#function to save the SHA56 hash to the hash_retry file
+# function to save the SHA56 hash to the hash_retry file
+
+
 def retryHash(ransomware_extension, hash_value):
 
     # save the hash to a new file
@@ -119,119 +126,143 @@ def retryHash(ransomware_extension, hash_value):
     except:
         print("Error:Unable to save retry hash")
 
-#function to timeout if procmon log is corrupt
+# function to timeout if procmon log is corrupt
+
+
 def timeout():
     global pmlCorrupt
     count = 0
-    while(pmlCorrupt !='no' and count != config.procmonTimeout):
+    while (pmlCorrupt != 'no' and count != config.procmonTimeout):
         time.sleep(1)
-        count +=1
+        count += 1
 
     if pmlCorrupt == 'null':
         pmlCorrupt = 'yes'
         os.system('Taskkill /IM Procmon64.exe /F')
 
-#function to setup spade vm and start it 
+# function to setup spade vm and start it
+
+
 def runSpade():
 
-    #makes the shared folder
-    os.system(f'''VBoxManage snapshot {config.spade_vm_name} restore {config.spade_vm_snapshot}''')
-    os.system(f'''VBoxManage sharedfolder add "{config.spade_vm_name}" --name "{config.main_folder}" --hostpath "{config.shared_folder_path}" --automount''')
+    # makes the shared folder
+    os.system(
+        f'''VBoxManage snapshot {config.spade_vm_name} restore {config.spade_vm_snapshot}''')
+    main_folder = config.reprod_dir.split("\\")[-1]
+    os.system(
+        f'''VBoxManage sharedfolder add "{config.spade_vm_name}" --name "{main_folder}" --hostpath "{config.reprod_dir}" --automount''')
 
     # starts the vm and sets up username and password
     print('\n')
     os.system(f"VBoxManage startvm {config.spade_vm_name}")
-    os.system(f'VBoxManage controlvm {config.spade_vm_name} setcredentials {config.spade_vm_username} {config.spade_vm_password} "DOMTEST"')
-    for i in tqdm(range(config.spade_vm_start_time)):
-            time.sleep(1)
+    os.system(
+        f'VBoxManage controlvm {config.spade_vm_name} setcredentials {config.spade_vm_username} {config.spade_vm_password} "DOMTEST"')
+    for i in tqdm(range(int(config.spade_vm_start_time))):
+        time.sleep(1)
     print('\n')
 
-#function to close and restore spade vm
+# function to close and restore spade vm
+
+
 def closeSapde():
 
     print('\n')
     print('closing Spade VM \n')
     os.system(f"VBoxManage controlvm {config.spade_vm_name} poweroff")
-    time.sleep(config.spadeVmCloseTime)
+    time.sleep(int(config.spade_vm_close_time))
 
-#function to start vm
+# function to start vm
+
+
 def startVm():
     os.system(f"VBoxManage startvm {config.sandbox_vm_name}")
-    os.system(f'VBoxManage controlvm {config.sandbox_vm_name} setcredentials {config.username} {config.sandbox_password} "DOMTEST"')
-    for i in tqdm(range(config.spade_vm_start_time)):
+    os.system(
+        f'VBoxManage controlvm {config.sandbox_vm_name} setcredentials {config.username} {config.sandbox_vm_password} "DOMTEST"')
+    for i in tqdm(range(int(config.vm_start_time))):
         time.sleep(1)
     print('\n')
 
-#function to close vm
+# function to close vm
+
+
 def closeVm():
     print('closing ransomeware VM \n')
     os.system(f"VBoxManage controlvm {config.sandbox_vm_name} poweroff")
-    time.sleep(config.spade_vm_close_time)
+    time.sleep(int(config.spade_vm_close_time))
     print('\n')
 
-#variable to check if procmon log is corrupted or not
+
+# variable to check if procmon log is corrupted or not
 pmlCorrupt = ''
 
 # counter to track number of iterations
 count = 0
 
-while(count != config.runs):
+while (count != config.runs):
     pmlCorrupt = 'null'
     try:
+        # reads hash from the file and print it
+        print("extracting hash from txt file \n")
+        hash_value = extract_hash(config.mb_SHA256_filename)
+        print("Hash: ", hash_value, '\n')
+
         # starts the vm and sets up config.username and config.password
         startVm()
 
-        # reads hash from the file and print it
-        print("extracting hash from txt file \n")
-        hash_value = extract_hash(config.hash_filename)
-        print("Hash: ", hash_value, '\n')
-
         # calculating density prior
         print("calculating before density \n")
-        vboxManage(config.cmd_path, f'''/c "{config.densityscout_path} -d -r -o {config.density_save_path}\\densityBefore.txt {config.folder_for_density}" ''', "run")
+        vboxManage(
+            config.cmd_path, f'''/c "{config.densityscout_path} -d -r -o {config.density_save_path}\\densityBefore.txt {config.folder_for_density_path}" ''', "run")
 
         # downloads ransomware from bazaar api
         print("downloading ransomware \n")
-        vboxManage(config.cmd_path, f'''/c "bazaar init {config.bazaar_api_key}" ''', "run")
-        vboxManage(config.cmd_path, f'''/c "bazaar download {hash_value} --unzip --output {config.ransomware_download_path}\\{hash_value}.{config.ransomware_extension}" ''', "run")
+        vboxManage(config.cmd_path,
+                   f'''/c "bazaar init {config.bazaar_api_key}" ''', "run")
+        vboxManage(
+            config.cmd_path, f'''/c "bazaar download {hash_value} --unzip --output {config.ransomware_download_path}\\{hash_value}.{config.ransomware_extension}" ''', "run")
 
-        #opens procmon and start logging in a backing file
+        # opens procmon and start logging in a backing file
         print("ransomware downloaded, opening procmon \n")
-        vboxManage(config.procmon_path, f'''/BackingFile {config.log_save_vm_path}\\{hash_value}.pml /NoFilter /AcceptEula /LoadConfig {config.procmon_filter_file_path} /Quiet''', "start")
+        vboxManage(config.procmon_path,
+                   f'''/BackingFile {config.log_save_vm_path}\\{hash_value}.pml /NoFilter /AcceptEula /LoadConfig {config.procmon_filter_file_path} /Quiet''', "start")
         vboxManage(config.procmon_path, f'''/waitforidle ''', "run")
 
         # triggers ransomware
         print("procmon started, triggering ransomware \n")
-        vboxManage(config.cmd_path, f'''/c "{config.ransomware_download_path}\\{hash_value}.{config.ransomware_extension}" ''', "start")
+        vboxManage(
+            config.cmd_path, f'''/c "{config.ransomware_download_path}\\{hash_value}.{config.ransomware_extension}" ''', "start")
 
         # waiting for the ransomware to attack
         print("ransomware triggered, waiting for attack \n")
-        for i in tqdm(range(config.ransomware_exec_time)):
+        for i in tqdm(range(int(config.ransomware_exec_time))):
             time.sleep(1)
         print('\n')
 
-        #taking screenshot of the desktop
-        os.system(f"VBoxManage controlvm {config.sandbox_vm_name} screenshotpng {config.screenshots_path}\\{hash_value}.png")
+        # taking screenshot of the desktop
+        os.system(
+            f"VBoxManage controlvm {config.sandbox_vm_name} screenshotpng {config.screenshots_path}\\{hash_value}.png")
         print('screenshot of vm captured \n')
 
-        #calculating density after
+        # calculating density after
         print("calculating after density \n")
-        vboxManage(config.cmd_path, f'''/c "{config.densityscout_path} -d -r -o {config.density_save_path}\\densityAfter.txt {config.folder_for_density}" ''', "run")
+        vboxManage(
+            config.cmd_path, f'''/c "{config.densityscout_path} -d -r -o {config.density_save_path}\\densityAfter.txt {config.folder_for_density_path}" ''', "run")
 
-        #closing procmon
+        # closing procmon
         print('closing procmon \n')
         vboxManage(config.procmon_path, f'''/Terminate''', "start")
         time.sleep(180)
 
-        #closing the vm
+        # closing the vm
         print("Procmon closed, closing vm \n")
         closeVm()
 
         # mounting the secondary drive to move procmon logs to
         print("vm closed, mounting secondary drive to transfer logs \n")
-        os.system(f'''VBoxManage storageattach {config.sandbox_vm_name} --storagectl SATA --port 3 --type hdd --medium "{config.secondary_vdi_path}" ''')
+        os.system(
+            f'''VBoxManage storageattach {config.sandbox_vm_name} --storagectl SATA --port 3 --type hdd --medium "{config.secondary_vdi_filename}" ''')
 
-        # restarting the vm 
+        # restarting the vm
         print("drive mounted, starting vm")
         startVm()
 
@@ -241,9 +272,12 @@ while(count != config.runs):
         # vboxManage(config.cmd_path, f'''/c del F:\\*.txt''', "run")
         vboxManage(config.cmd_path, f'''/c del /Q F:\\*.*''', "run")
 
-        vboxManage(config.cmd_path, f'''/c move {config.density_save_path}\\densityAfter.txt {config.logs_dump_vdi_vm_path}\\{hash_value}_after.txt''', "run")
-        vboxManage(config.cmd_path, f'''/c move {config.density_save_path}\\densityBefore.txt {config.logs_dump_vdi_vm_path}\\{hash_value}_before.txt''', "run")
-        vboxManage(config.cmd_path, f'''/c move {config.log_save_vm_path}\\{hash_value}.pml {config.logs_dump_vdi_vm_path}\\{hash_value}.pml''', "run")
+        vboxManage(
+            config.cmd_path, f'''/c move {config.density_save_path}\\densityAfter.txt {config.logs_dump_vdi_vm_path}\\{hash_value}_after.txt''', "run")
+        vboxManage(
+            config.cmd_path, f'''/c move {config.density_save_path}\\densityBefore.txt {config.logs_dump_vdi_vm_path}\\{hash_value}_before.txt''', "run")
+        vboxManage(
+            config.cmd_path, f'''/c move {config.log_save_vm_path}\\{hash_value}.pml {config.logs_dump_vdi_vm_path}\\{hash_value}.pml''', "run")
         time.sleep(80)
 
         # closing vm
@@ -252,58 +286,66 @@ while(count != config.runs):
 
         # unmounting the secondary drive
         print("vm closed, unmounting secondary drive \n")
-        os.system(f"VBoxManage storageattach {config.sandbox_vm_name} --storagectl SATA --port 3 --medium none")
+        os.system(
+            f"VBoxManage storageattach {config.sandbox_vm_name} --storagectl SATA --port 3 --medium none")
 
         # restoring the vm back to a fresh snapshot
         print("secondary drive unmounted \n")
-        os.system(f'''VBoxManage snapshot {config.sandbox_vm_name} restore {config.sandbox_vm_snapshot_name}''')
+        os.system(
+            f'''VBoxManage snapshot {config.sandbox_vm_name} restore {config.sandbox_vm_snapshot_name}''')
         print("snapshot restored \n")
 
         # extracting the logs and density file
         print('extracting logs from secondary storage to host \n')
-        os.system(f'''"{config.zip_path}" x {config.secondary_vdi_path} -aoa -o{config.pml_path} {hash_value}.pml''')
-        os.system(f'''"{config.zip_path}" x {config.secondary_vdi_path} -aoa -o{config.density_path}\\before {hash_value}_before.txt''')
-        os.system(f'''"{config.zip_path}" x {config.secondary_vdi_path} -aoa -o{config.density_path}\\after {hash_value}_after.txt''')
+        os.system(
+            f'''"{config.zip_path}" x {config.secondary_vdi_filename} -aoa -o{config.pml_path} {hash_value}.pml''')
+        os.system(
+            f'''"{config.zip_path}" x {config.secondary_vdi_filename} -aoa -o{config.density_path}\\before {hash_value}_before.txt''')
+        os.system(
+            f'''"{config.zip_path}" x {config.secondary_vdi_filename} -aoa -o{config.density_path}\\after {hash_value}_after.txt''')
         print('\n')
-        
-        #starting timeout
+
+        # starting timeout
         t1 = threading.Thread(target=timeout)
         t1.start()
 
         # converting pml log to xml
         print('extraction done, converting pml log into xml \n')
-        os.system(f'''{config.procmon_path_host} /OpenLog {config.pml_path}\\{hash_value}.PML /LoadConfig {config.procmon_filter_file_pathHost} /SaveAs {config.xml_path}\\{hash_value}.XML''' )
-        
+        os.system(f'''{config.procmon_path_host} /OpenLog {config.pml_path}\\{hash_value}.PML /LoadConfig {config.procmon_filter_filename} /SaveAs {config.xml_path}\\{hash_value}.XML''')
+
         if pmlCorrupt == 'yes':
             os.system(f'''del {config.pml_path}\\*.pml''')
             os.system(f'''del {config.xml_path}\\*.XML''')
             print('procmon log corrupted, cannot convert \n')
-            raise Exception("Unable to execute the command")
-        
+            raise Exception("Unable to process pml log")
+
         elif pmlCorrupt == 'null':
             pmlCorrupt = 'no'
             t1.join()
 
-        #running spade vm and collecting file operations
+        # running spade vm and collecting file operations
         print('starting spadeVm to collect file operations \n')
         runSpade()
-        os.system(f'''VboxManage guestcontrol "{config.spade_vm_name}" run --exe {config.get_file_operations_path} --username "{config.spade_vm_username}" --password "{config.spade_vm_password}" -- {config.get_file_operations_path} {config.main_folder} {config.current_folder}''')
+        current_folder = config.run_dir.split("\\")[-1]
+        main_folder = config.reprod_dir.split("\\")[-1]
+        os.system(f'''VboxManage guestcontrol "{config.spade_vm_name}" run --exe {config.get_file_operations_path} --username "{config.spade_vm_username}" --password "{config.spade_vm_password}" -- {config.get_file_operations_path} {main_folder} {current_folder}''')
         closeSapde()
         print('\n file operations extracted \n')
 
         # saving the hash as done and deleting it from the original file and cleaning up xmls and pmls
         os.system(f'''del {config.xml_path}\\*.XML''')
-        os.system(f'''"{config.zip_path}" a -tzip {config.pmlDonePath}\\{hash_value}.zip {config.pml_path}\\{hash_value}.PML -r0 && del {config.pml_path}\\{hash_value}.PML''')
+        os.system(f'''"{config.zip_path}" a -tzip {config.pml_done_path}\\{hash_value}.zip {config.pml_path}\\{hash_value}.PML -r0 && del {config.pml_path}\\{hash_value}.PML''')
         saveHash(config.ransomware_extension, hash_value)
-        deleteHash(config.hash_filename)
-        
+        deleteHash(config.mb_SHA256_filename)
+
         count = count + 1
         print('runs done: ', count, '\n')
 
     # if hashfile is empty, close vms and restore snapshots
     except SystemExit:
         closeVm()
-        os.system(f'''VBoxManage snapshot {config.sandbox_vm_name} restore {config.sandbox_vm_snapshot_name}''')
+        os.system(
+            f'''VBoxManage snapshot {config.sandbox_vm_name} restore {config.sandbox_vm_snapshot_name}''')
         print("snapshot restored \n")
         os.system('Taskkill /IM Procmon64.exe /F')
         closeSapde()
@@ -313,7 +355,8 @@ while(count != config.runs):
     except KeyboardInterrupt:
         print('keyboard interrupt detected \n')
         closeVm()
-        os.system(f'''VBoxManage snapshot {config.sandbox_vm_name} restore {config.sandbox_vm_snapshot_name}''')
+        os.system(
+            f'''VBoxManage snapshot {config.sandbox_vm_name} restore {config.sandbox_vm_snapshot_name}''')
         print("snapshot restored \n")
         os.system('Taskkill /IM Procmon64.exe /F')
         closeSapde()
@@ -323,10 +366,11 @@ while(count != config.runs):
     except:
         print("Error: Exception occured \n")
         closeVm()
-        os.system(f'''VBoxManage snapshot {config.sandbox_vm_name} restore {config.sandbox_vm_snapshot_name}''')
+        os.system(
+            f'''VBoxManage snapshot {config.sandbox_vm_name} restore {config.sandbox_vm_snapshot_name}''')
         print("snapshot restored \n")
         os.system('Taskkill /IM Procmon64.exe /F')
         closeSapde()
         retryHash(config.ransomware_extension, hash_value)
-        deleteHash(config.hash_filename)
+        deleteHash(config.mb_SHA256_filename)
         continue

@@ -90,6 +90,6 @@ for line in fileOpsList:
 fileOpsFile.close()
 
 #open the file in the write mode
-with open(config.summary_csv_file_path, 'w') as f:
+with open(config.summary_csv_filename, 'w') as f:
     writer = csv.writer(f)
     writer.writerows(rows)

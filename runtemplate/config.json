@@ -2,14 +2,15 @@
   "variables": {
     "run_dir": "path/to/runtemplate",
     "reprod_dir": "path/to/REPROD-workflow",
-    "main_folder": "mainfolder",
+    "main_folder": "REPROD-workflow",
     "username": "ransomware"
-  },
 
-  "ransomware_exec_time": 600,
+  },
+ 
+  "mb_SHA256_filename" : "malwarebazaar_ransomware_exe_sha256.txt",
+  "ransomware_exec_time": "600",
   "ransomware_extension": "exe",
-  "mb_SHA256_filename": "{run_dir}\\malwarebazaar_ransomware_exe_sha256.txt",
-  "runs": 200,
+  "runs": "200",
   "zip_path": "{reprod_dir}\\7-Zip\\7z.exe",
   "host_name": "phdlab",
   "procmon_path_host": "{reprod_dir}\\ProcessMonitor\\Procmon64",
@@ -24,7 +25,7 @@
   "screenshots_path": "{run_dir}\\screenshots",
 
   "summary_csv_filename": "{run_dir}\\summary.csv",
-  "procmon_timeout": 1200,
+  "procmon_timeout": "1200",
 
   "sandbox_vm_name": "ransomwareVm",
   "sandbox_vm_password": "helloworld",
@@ -38,16 +39,16 @@
   "densityscout_path": "E:\\densityscout_build_45_windows\\win64\\densityscout.exe",
   "density_save_path": "E:\\",
   "folder_for_density_path": "C:\\Users\\{username}\\Desktop",
-  "vm_start_time": 70,
-  "vm_closing_time": 5,
+  "vm_start_time": "70",
+  "vm_closing_time": "5",
   "logs_dump_vdi_vm_path": "F:\\",
   "secondary_vdi_filename": "{reprod_dir}\\vm_logsDump.vdi",
-
+  
   "spade_vm_name": "spadeVm",
   "spade_vm_username": "spades",
   "spade_vm_password": "helloworld",
-  "spade_vm_start_time": 30,
+  "spade_vm_start_time": "30",
   "spade_vm_snapshot": "Snapshot1",
-  "spade_vm_close_time": 5,
-  "shared_folder_path": "{reprod_dir}"
+  "spade_vm_close_time": "5",
+  "get_file_operations_path" : "/media/sf_{main_folder}/getfileops.py"
 }
