@@ -65,5 +65,5 @@ of a ransomware and add that data to the `summary.csv` file. It takes as argumen
 
 # clonerun.py
 This will clone a source run into a new directory, changing `run_dir` in the config appropriately and can
-filter the summary file.
-at follows the rules for DataFrame of the Pandas library and is a valid query based on "summary.csv", created after running vmAutomation.py for a folder
+filter the summary file to produce a new set of hashes for the next run (e..g, one may want to select only the failed runs to run again).
+
