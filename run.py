@@ -251,7 +251,7 @@ while (count != config.runs):
         # closing procmon
         print('closing procmon \n')
         vboxManage(config.procmon_path, f'''/Terminate''', "start")
-        time.sleep(180)
+        time.sleep(50)
 
         # closing the vm
         print("Procmon closed, closing vm \n")
@@ -328,7 +328,8 @@ while (count != config.runs):
         runSpade()
         current_folder = config.run_dir.split("\\")[-1]
         main_folder = config.reprod_dir.split("\\")[-1]
-        os.system(f'''VboxManage guestcontrol "{config.spade_vm_name}" run --exe {config.get_file_operations_path} --username "{config.spade_vm_username}" --password "{config.spade_vm_password}" -- {config.get_file_operations_path} {main_folder} {current_folder}''')
+        get_file_operations_path = "/media/sf_" + main_folder +"/getfileops.py"
+        os.system(f'''VboxManage guestcontrol "{config.spade_vm_name}" run --exe {get_file_operations_path} --username "{config.spade_vm_username}" --password "{config.spade_vm_password}" -- {get_file_operations_path} {main_folder} {current_folder}''')
         closeSapde()
         print('\n file operations extracted \n')
 
