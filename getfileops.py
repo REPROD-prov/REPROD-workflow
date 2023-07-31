@@ -8,7 +8,7 @@ import sys
 
 directory = f"/media/sf_{sys.argv[1]}/{sys.argv[2]}" 
 xmlPath = directory + "/xmls"
-scriptPath = f"/media/sf_{sys.argv[1]}/get_fileops.sh"
+scriptPath = f"/media/sf_{sys.argv[1]}/getfileops.sh"
 
 xmlsDone = []
 os.system("sudo /home/spades/SPADE/bin/spade start")

@@ -2,11 +2,11 @@
   "variables": {
     "run_dir": "path/to/runtemplate",
     "reprod_dir": "path/to/REPROD-workflow",
-    "main_folder": "REPROD-workflow",
     "username": "ransomware"
 
   },
- 
+
+
   "mb_SHA256_filename" : "malwarebazaar_ransomware_exe_sha256.txt",
   "ransomware_exec_time": "600",
   "ransomware_extension": "exe",
@@ -49,6 +49,5 @@
   "spade_vm_password": "helloworld",
   "spade_vm_start_time": "30",
   "spade_vm_snapshot": "Snapshot1",
-  "spade_vm_close_time": "5",
-  "get_file_operations_path" : "/media/sf_{main_folder}/getfileops.py"
+  "spade_vm_close_time": "5"
 }
